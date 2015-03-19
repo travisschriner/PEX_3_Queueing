@@ -470,13 +470,15 @@ void* PPcpu (void* param){
   sharedVars* vars = ((cpuParams*)param)->svars;
   int threadNumber = ((cpuParams*)param)->threadNumber;
   process* p = NULL; //Nik said to use a helper process to navigate things
+
+  int lowestPriority = 9999;
   while(1){
     sem_wait(&(vars->cpuSems[threadNumber])); // waits for the semephore to open
     //only goes if there is no process yet
     if(p==NULL){
       pthread_mutex_lock(&(vars->readyQLock)); //enter critical section
       if((vars->readyQ).head !=NULL) { //only searches if something is in the ready Q
-	int lowestPriority = 9999;
+	//int lowestPriority = 9999;
 	int index = 0;
 	int lowestIndex = 0;
 	node* traverse = (vars->readyQ).head; //helper node to traverse
@@ -511,20 +513,30 @@ void* PPcpu (void* param){
 	  p=NULL;//this clears whichever process I'm working on
 	}//if(p->burstRem
 
-	if((vars->readyQ).head !=NULL){//makes sure ready Q is not empty so it can check for lower priority
-	  //this will check every time so we only have to check the head to make sure nothing got added
-	  //since the first time we initialized the process
-	  if(((vars->readyQ).head->data->burstRemaining) < (p->burstRemaining)){
-	   p->requeued = true;
-	   printf("I was requeued\n");
-	   Qinsert(&(vars->readyQ),p);
-	   p = NULL;
-          }//if(((vars->readyQ).head->data
-        }//if((vars->readyQ
+
       }//if(p!=NULL)     
       pthread_mutex_lock(&(vars->readyQLock)); //enter critical section   
     //============START WORKING SECTION========================
-
+	if((vars->readyQ).head !=NULL && p!=NULL){//makes sure ready Q is not empty so it can check for lower priority
+	  //this will check every time so we only have to check the head to make sure nothing got added
+	  //since the first time we initialized the process
+	  node* traverse = (vars->readyQ).head; //helper node to traverse
+	  int requeued_flag = 0;
+	  while(traverse->next !=NULL && p!=NULL){
+	    if((traverse->data->priority) < (p->priority)){
+	   p->requeued = true;
+	   printf("I was requeued\n");
+	   Qinsert(&(vars->readyQ),p);
+	   //requeued_flag = 1;
+	   p = NULL;
+	 
+          }//if(((vars->readyQ).head->data
+	    if(requeued_flag = 1){
+	      p=NULL;
+	    }//if(requeued
+	    traverse=traverse->next;
+	  }//while(traverse->next
+        }//if((vars->readyQ
   
     //==================END WORKING SECTION===================
     

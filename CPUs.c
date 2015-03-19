@@ -2,7 +2,13 @@
 #include "CPUs.h"
 #include "processQueue.h"
 
-
+/*DOCUMENTATION STATEMENT: 
+C1C Nikolas Taromina Explained how I needed to structure the first algorithm.
+I then used this as a template for the remainder of the algorithms. C1C John Miller explained 
+how to add preemption and helped me test my code. He stated I should add print statements in 
+certain areas to verify functionality. This in turn allows me to logically look at my code and 
+see if it is working. 
+*/
 
 //=======================================================================
 //--------------First Come First Serve-------------------*works----------
@@ -23,7 +29,7 @@ void* FCFScpu (void* param){
       pthread_mutex_lock(&(vars->readyQLock)); //enter critical section
       
       if((vars->readyQ).head !=NULL) {
-	int leastArrival = 9999; //initialized bigger than anything foreseeable
+	int lowestArrival = 9999; //initialized bigger than anything foreseeable
 	int index = 0; //gets reset anyways
 	int lowestIndex = 0;
 
@@ -32,9 +38,9 @@ void* FCFScpu (void* param){
 
 	while(traverse != NULL){
 	  
-	  if((traverse->data->arrivalTime) < (leastArrival)){  
+	  if((traverse->data->arrivalTime) < (lowestArrival)){  
 	    
-	    leastArrival = ((traverse->data->arrivalTime));
+	    lowestArrival = ((traverse->data->arrivalTime));
 	    p = traverse->data;
 	    lowestIndex = index;
 	  
@@ -103,7 +109,7 @@ void* SJFcpu (void* param){
       pthread_mutex_lock(&(vars->readyQLock)); //enter critical section
       
       if((vars->readyQ).head !=NULL) {
-	int lowBurst = 9999;
+	int lowestBurst = 9999;
 	int index = 0;
 	int lowestIndex = 0;
 
@@ -112,9 +118,9 @@ void* SJFcpu (void* param){
 
 	while(traverse != NULL){
 	  
-	  if((traverse->data->burstTotal) < (lowBurst)){  
+	  if((traverse->data->burstTotal) < (lowestBurst)){  
 	    
-	    lowBurst = ((traverse->data->burstTotal));
+	    lowestBurst = ((traverse->data->burstTotal));
 	    p = traverse->data;
 	    lowestIndex = index;
 	  
@@ -182,7 +188,7 @@ void* NPPcpu (void* param){
       pthread_mutex_lock(&(vars->readyQLock)); //enter critical section
       
       if((vars->readyQ).head !=NULL) {
-	int lowPriority = 9999; 
+	int lowestPriority = 9999; 
 	int index = 0;
 	int lowestIndex = 0;
 
@@ -191,9 +197,9 @@ void* NPPcpu (void* param){
 
 	while(traverse != NULL){
 	  
-	  if((traverse->data->priority) < (lowPriority)){  
+	  if((traverse->data->priority) < (lowestPriority)){  
 	    
-	    lowPriority = ((traverse->data->priority));
+	    lowestPriority = ((traverse->data->priority));
 	    p = traverse->data;
 	    lowestIndex = index;
 	  
@@ -356,7 +362,7 @@ void* SRTFcpu (void* param){
       pthread_mutex_lock(&(vars->readyQLock)); //enter critical section
       
       if((vars->readyQ).head !=NULL) {
-	int lowBurstRemaining = 9999;
+	int lowestBurstRemaining = 9999;
 	int index = 0;
 	int lowestIndex = 0;
 
@@ -365,9 +371,9 @@ void* SRTFcpu (void* param){
 
 	while(traverse != NULL){
 	  
-	  if((traverse->data->burstTotal) < (lowBurstRemaining)){  
+	  if((traverse->data->burstTotal) < (lowestBurstRemaining)){  
 	    
-	    lowBurstRemaining = ((traverse->data->burstTotal));
+	    lowestBurstRemaining = ((traverse->data->burstTotal));
 	    p = traverse->data;
 	    lowestIndex = index;
 	  
@@ -423,91 +429,108 @@ void* SRTFcpu (void* param){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //========================================================
 //------Priority Preemtive-------*almost works------------
 //========================================================
 
 
 
-void* PPcpu (void* param){
 
- sharedVars* vars = ((cpuParams*)param)->svars;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void* PPcpu (void* param){
+  sharedVars* vars = ((cpuParams*)param)->svars;
   int threadNumber = ((cpuParams*)param)->threadNumber;
   process* p = NULL; //Nik said to use a helper process to navigate things
-
-
-
   while(1){
-
     sem_wait(&(vars->cpuSems[threadNumber])); // waits for the semephore to open
-    
+    //only goes if there is no process yet
     if(p==NULL){
       pthread_mutex_lock(&(vars->readyQLock)); //enter critical section
-      
-      if((vars->readyQ).head !=NULL) {
-	int lowPriority = 9999;
+      if((vars->readyQ).head !=NULL) { //only searches if something is in the ready Q
+	int lowestPriority = 9999;
 	int index = 0;
 	int lowestIndex = 0;
-
 	node* traverse = (vars->readyQ).head; //helper node to traverse
 	p = (vars->readyQ).head->data;
-
-	while(traverse != NULL){
-	  
-	  if((traverse->data->priority) < (lowPriority)){  
-	    
-	    lowPriority = ((traverse->data->priority));
+	while(traverse != NULL){ //searches entire Q 	  
+	  if((traverse->data->priority) < (lowestPriority)){ //gets lowest priority and sets it 	    
+	    lowestPriority = ((traverse->data->priority));
 	    p = traverse->data;
-	    lowestIndex = index;
-	  
+	    lowestIndex = index;	  
 	  }//if((traverse->data
-
 	  if(traverse->next != NULL){
 	    traverse = traverse->next;
 	  }else{
 	    traverse = NULL;
-	  }//if(traverse->
-	  
+	  }//if(traverse->	  
 	  index++;
-
 	}//while(traverse!=Null)
-
 	p = Qremove((&(vars->readyQ)),lowestIndex); //remove process from ready queue
-	printf("Process %d has been scheduled\n", (p->PID));
-	
+	printf("Process %d has been scheduled\n", (p->PID));	
       }//if((vars->readyQ)
-
       pthread_mutex_unlock(&(vars->readyQLock)); //exit critical section
+    }//if(P==NULL)
 
-    }
+    //only gues if there is a process running
       if(p!=NULL){
 	p->burstRemaining--;
+	//if process is finished
 	if(p->burstRemaining==0){
 	  pthread_mutex_lock(&(vars->finishedQLock));
 	  Qinsert(&(vars->finishedQ),p);
 	  pthread_mutex_unlock(&(vars->finishedQLock));
-	  p=NULL;
+	  p=NULL;//this clears whichever process I'm working on
 	}//if(p->burstRem
-      }//if(p!=NULL)
 
+	if((vars->readyQ).head !=NULL){//makes sure ready Q is not empty so it can check for lower priority
+	  //this will check every time so we only have to check the head to make sure nothing got added
+	  //since the first time we initialized the process
+	  if(((vars->readyQ).head->data->burstRemaining) < (p->burstRemaining)){
+	   p->requeued = true;
+	   printf("I was requeued\n");
+	   Qinsert(&(vars->readyQ),p);
+	   p = NULL;
+          }//if(((vars->readyQ).head->data
+        }//if((vars->readyQ
+      }//if(p!=NULL)     
+      pthread_mutex_lock(&(vars->readyQLock)); //enter critical section   
+    //============START WORKING SECTION========================
 
   
-
-     
-    pthread_mutex_lock(&(vars->readyQLock));
-
-    //TODO check entire list and not just head for lowest priority
-    if((vars->readyQ).head !=NULL && p!=NULL){
-      if(((vars->readyQ).head->data->priority) < (p->priority)){
-	p->requeued = true;
-	Qinsert(&(vars->readyQ),p);
-	p = NULL;
-      }//if(((vars->readyQ).head->data
-
-    }//if((vars->readyQ
-
+    //==================END WORKING SECTION===================
+    
     pthread_mutex_unlock(&(vars->readyQLock));
-    sem_post(&(vars->mainSem)); //sig main thread
-  }
-}
+    printf("time burst\n");
+    sem_post(&(vars->mainSem)); //sig main thread  
+  }//while(1)
+}//VoidPPcpu
 

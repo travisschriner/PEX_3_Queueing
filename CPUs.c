@@ -4,10 +4,10 @@
 
 /*DOCUMENTATION STATEMENT: 
 C1C Nikolas Taromina Explained how I needed to structure the first algorithm.
-I then used this as a template for the remainder of the algorithms. C1C John Miller explained 
-how to add preemption and helped me test my code. He stated I should add print statements in 
-certain areas to verify functionality. This in turn allows me to logically look at my code and 
-see if it is working. 
+I then used this as a template for the remainder of the algorithms. C1C John Miller 
+explained how to add preemption and helped me test my code. He stated I should 
+add print statements in certain areas to verify functionality. This in turn 
+allows me to logically look at my code and see if it is working. 
 */
 
 //=======================================================================
@@ -38,9 +38,9 @@ void* FCFScpu (void* param){
 
 	while(traverse != NULL){
 	  
-	  if((traverse->data->arrivalTime) < (lowestArrival)){  
+	  if(traverse->data->arrivalTime < lowestArrival){  
 	    
-	    lowestArrival = ((traverse->data->arrivalTime));
+	    lowestArrival = traverse->data->arrivalTime;
 	    p = traverse->data;
 	    lowestIndex = index;
 	  
@@ -56,8 +56,8 @@ void* FCFScpu (void* param){
 
 	}//while(traverse!=Null)
 
-	p = Qremove((&(vars->readyQ)),lowestIndex); //remove process from ready queue
-	printf("Process %d has been scheduled\n", (p->PID));
+	p = Qremove(&(vars->readyQ),lowestIndex); //remove process from ready queue
+	printf("Process %d has been scheduled\n", p->PID);
 	
       }//if((vars->readyQ)
 
@@ -118,9 +118,9 @@ void* SJFcpu (void* param){
 
 	while(traverse != NULL){
 	  
-	  if((traverse->data->burstTotal) < (lowestBurst)){  
+	  if(traverse->data->burstTotal < lowestBurst){  
 	    
-	    lowestBurst = ((traverse->data->burstTotal));
+	    lowestBurst = traverse->data->burstTotal;
 	    p = traverse->data;
 	    lowestIndex = index;
 	  
@@ -136,8 +136,8 @@ void* SJFcpu (void* param){
 
 	}//while(traverse!=Null)
 
-	p = Qremove((&(vars->readyQ)),lowestIndex); //remove process from ready queue
-	printf("Process %d has been scheduled\n", (p->PID));
+	p = Qremove(&(vars->readyQ),lowestIndex); //remove process from ready queue
+	printf("Process %d has been scheduled\n", p->PID);
 	
       }//if((vars->readyQ)
 
@@ -197,9 +197,9 @@ void* NPPcpu (void* param){
 
 	while(traverse != NULL){
 	  
-	  if((traverse->data->priority) < (lowestPriority)){  
+	  if(traverse->data->priority < lowestPriority){  
 	    
-	    lowestPriority = ((traverse->data->priority));
+	    lowestPriority = traverse->data->priority;
 	    p = traverse->data;
 	    lowestIndex = index;
 	  
@@ -215,8 +215,8 @@ void* NPPcpu (void* param){
 
 	}//while(traverse!=Null)
 
-	p = Qremove((&(vars->readyQ)),lowestIndex); //remove process from ready queue
-	printf("Process %d has been scheduled\n", (p->PID));
+	p = Qremove(&(vars->readyQ),lowestIndex); //remove process from ready queue
+	printf("Process %d has been scheduled\n", p->PID);
 	
       }//if((vars->readyQ)
 
@@ -280,9 +280,9 @@ void* RRcpu (void* param){
 
 	while(traverse != NULL){
 	  
-	  if((traverse->data->arrivalTime) < (lowArrivalTime)){  
+	  if(traverse->data->arrivalTime < lowArrivalTime){  
 	    
-	    lowArrivalTime = ((traverse->data->arrivalTime));
+	    lowArrivalTime = traverse->data->arrivalTime;
 	    p = traverse->data;
 	    lowestIndex = index;
 	  
@@ -298,8 +298,8 @@ void* RRcpu (void* param){
 
 	}//while(traverse!=Null)
 
-	p = Qremove((&(vars->readyQ)),lowestIndex); //remove process from ready queue
-	printf("Process %d has been scheduled\n", (p->PID));
+	p = Qremove(&(vars->readyQ),lowestIndex); //remove process from ready queue
+	printf("Process %d has been scheduled\n", p->PID);
 	
       }//if((vars->readyQ)
 
@@ -371,9 +371,9 @@ void* SRTFcpu (void* param){
 
 	while(traverse != NULL){
 	  
-	  if((traverse->data->burstTotal) < (lowestBurstRemaining)){  
+	  if(traverse->data->burstTotal < lowestBurstRemaining){  
 	    
-	    lowestBurstRemaining = ((traverse->data->burstTotal));
+	    lowestBurstRemaining = traverse->data->burstTotal;
 	    p = traverse->data;
 	    lowestIndex = index;
 	  
@@ -389,7 +389,7 @@ void* SRTFcpu (void* param){
 
 	}//while(traverse!=Null)
 
-	p = Qremove((&(vars->readyQ)),lowestIndex); //remove process from ready queue
+	p = Qremove(&(vars->readyQ),lowestIndex); //remove process from ready queue
 	printf("Process %d has been scheduled\n", (p->PID));
 	
       }//if((vars->readyQ)
@@ -412,7 +412,7 @@ void* SRTFcpu (void* param){
     pthread_mutex_lock(&(vars->readyQLock));
 
     if((vars->readyQ).head !=NULL && p!=NULL){
-      if(((vars->readyQ).head->data->burstRemaining) < (p->burstRemaining)){
+      if((vars->readyQ).head->data->burstRemaining < p->burstRemaining){
 	p->requeued = true;
 	Qinsert(&(vars->readyQ),p);
 	p = NULL;
@@ -484,8 +484,8 @@ void* PPcpu (void* param){
 	node* traverse = (vars->readyQ).head; //helper node to traverse
 	p = (vars->readyQ).head->data;
 	while(traverse != NULL){ //searches entire Q 	  
-	  if((traverse->data->priority) < (lowestPriority)){ //gets lowest priority and sets it 	    
-	    lowestPriority = ((traverse->data->priority));
+	  if(traverse->data->priority < lowestPriority){ //gets lowest priority and sets it 	    
+	    lowestPriority = traverse->data->priority;
 	    p = traverse->data;
 	    lowestIndex = index;	  
 	  }//if((traverse->data
@@ -496,7 +496,7 @@ void* PPcpu (void* param){
 	  }//if(traverse->	  
 	  index++;
 	}//while(traverse!=Null)
-	p = Qremove((&(vars->readyQ)),lowestIndex); //remove process from ready queue
+	p = Qremove(&(vars->readyQ),lowestIndex); //remove process from ready queue
 	printf("Process %d has been scheduled\n", (p->PID));	
       }//if((vars->readyQ)
       pthread_mutex_unlock(&(vars->readyQLock)); //exit critical section
@@ -518,25 +518,27 @@ void* PPcpu (void* param){
       pthread_mutex_lock(&(vars->readyQLock)); //enter critical section   
     //============START WORKING SECTION========================
 	if((vars->readyQ).head !=NULL && p!=NULL){//makes sure ready Q is not empty so it can check for lower priority
-	  //this will check every time so we only have to check the head to make sure nothing got added
-	  //since the first time we initialized the process
+	
+	 
 	  node* traverse = (vars->readyQ).head; //helper node to traverse
 	  int requeued_flag = 0;
 	  while(traverse->next !=NULL && p!=NULL){
-	    if((traverse->data->priority) < (p->priority)){
+	    if(traverse->data->priority < p->priority){
 	   p->requeued = true;
 	   printf("I was requeued\n");
 	   Qinsert(&(vars->readyQ),p);
-	   //requeued_flag = 1;
-	   p = NULL;
+	   requeued_flag = 1;
+	   p =traverse->data;
 	 
           }//if(((vars->readyQ).head->data
-	    if(requeued_flag = 1){
-	      p=NULL;
-	    }//if(requeued
+	    
 	    traverse=traverse->next;
 	  }//while(traverse->next
+	    if(requeued_flag = 1){
+	       p=NULL;
+	    }//if(requeued
         }//if((vars->readyQ
+	//	p=NULL;
   
     //==================END WORKING SECTION===================
     
